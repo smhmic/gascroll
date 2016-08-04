@@ -302,14 +302,24 @@
 
       });
 
-    } else if (typeof el['on' + evt] === 'undefined' || el['on' + evt] === null) {
-
-      el['on' + evt] = function(evt) {
-
-        // Call the event to ensure uniform 'this' handling, pass it event
-        fn.call(el, evt);
-
-      };
+    } else {
+      
+      el['on' + evt] = (function(origHandler){
+        
+        return function(evt) {
+          
+          // Call the event to ensure uniform 'this' handling, pass it event
+          fn.call(el, evt);
+          
+          // Call previous event handler, if exists.
+          if(typeof origHandler === 'string'){
+            origHandler = window[origHandler];
+          }
+          origHandler && origHandler.apply(this, [].slice.call(arguments));
+          
+        };
+        
+      })(el['on' + evt]);
 
     }
 
